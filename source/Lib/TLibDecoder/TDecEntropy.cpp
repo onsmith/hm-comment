@@ -109,16 +109,33 @@ Void TDecEntropy::decodePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDe
   m_pcEntropyDecoderIf->parsePartSize( pcCU, uiAbsPartIdx, uiDepth );
 }
 
-Void TDecEntropy::decodePredInfo    ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, TComDataCU* pcSubCU )
+/** Decodes prediction info for a non I-PCM, non skipped, leaf CU
+ * \param TComDataCU* pcCU          Pointer to the CU data structure
+ * \param UInt        uiAbsPartIdx  Pointer to the current sub-CU partition
+ *                                  within the CU data structure
+ * \param UInt        uiDepth       The depth of the current sub-CU partition
+ * \param TComDataCU* pcSubCU       Pointer to the current sub-CU partition data
+ *                                  structure
+ */
+Void TDecEntropy::decodePredInfo( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, TComDataCU* pcSubCU )
 {
-  if( pcCU->isIntra( uiAbsPartIdx ) )                                 // If it is Intra mode, encode intra prediction mode.
+  // Decode intra prediction information (mode)
+  if( pcCU->isIntra( uiAbsPartIdx ) )
   {
-    decodeIntraDirModeLuma  ( pcCU, uiAbsPartIdx, uiDepth );
-    if (pcCU->getPic()->getChromaFormat()!=CHROMA_400)
+    // Decode luma intra-frame prediction mode
+    decodeIntraDirModeLuma( pcCU, uiAbsPartIdx, uiDepth );
+
+    // Decode chroma intra-frame prediction mode (unless no chroma exists)
+    if ( pcCU->getPic()->getChromaFormat() != CHROMA_400 )
     {
       decodeIntraDirModeChroma( pcCU, uiAbsPartIdx, uiDepth );
-      if (enable4ChromaPUsInIntraNxNCU(pcCU->getPic()->getChromaFormat()) && pcCU->getPartitionSize( uiAbsPartIdx )==SIZE_NxN)
+
+      // If chroma PUs should be split, decode intra-frame prediction mode for
+      //   the other three chroma PUs
+      if ( enable4ChromaPUsInIntraNxNCU( pcCU->getPic()->getChromaFormat() ) && pcCU->getPartitionSize( uiAbsPartIdx ) == SIZE_NxN )
       {
+        // uiPartOffset is the number of chroma PU partitions at this depth that
+        // would fit in a CTU
         UInt uiPartOffset = ( pcCU->getPic()->getNumPartitionsInCtu() >> ( pcCU->getDepth(uiAbsPartIdx) << 1 ) ) >> 2;
         decodeIntraDirModeChroma( pcCU, uiAbsPartIdx + uiPartOffset,   uiDepth+1 );
         decodeIntraDirModeChroma( pcCU, uiAbsPartIdx + uiPartOffset*2, uiDepth+1 );
@@ -126,7 +143,9 @@ Void TDecEntropy::decodePredInfo    ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt 
       }
     }
   }
-  else                                                                // if it is Inter mode, encode motion vector and reference index
+
+  // Decode inter prediction information (motion vector and reference index)
+  else
   {
     decodePUWise( pcCU, uiAbsPartIdx, uiDepth, pcSubCU );
   }

@@ -112,10 +112,10 @@ static inline UInt getTotalBits(const UInt width, const UInt height, const Chrom
 
 //------------------------------------------------
 
-// In HM, a CU only has one chroma intra prediction direction, that corresponds to the top left luma intra prediction
-// even if the NxN PU split occurs when 4 sub-TUs exist for chroma.
-// Use this function to allow NxN PU splitting for chroma.
-
+// In HM, a CU only has one chroma intra prediction direction, that corresponds
+// to the top left luma intra prediction even if the NxN PU split occurs when 4
+// sub-TUs exist for chroma. Use this function to allow NxN PU splitting for
+// chroma.
 static inline Bool enable4ChromaPUsInIntraNxNCU(const ChromaFormat chFmt)
 {
   return (chFmt == CHROMA_444);
